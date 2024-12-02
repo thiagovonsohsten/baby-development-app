@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # baby_development_app
 
 A new Flutter project.
@@ -14,3 +15,7 @@ A few resources to get you started if this is your first Flutter project:
 For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
+=======
+# baby-development-app
+Aplicativo Flutter focado no desenvolvimento infantil para pais e mães.
+>>>>>>> 7ec4fef4a977c96e377135bcef1f54b67d5a913b
