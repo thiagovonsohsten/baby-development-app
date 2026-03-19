@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../models/calendar_event.dart';
 import '../utils/calendar_service.dart';
+import '../utils/notification_service.dart';
 
 class CalendarScreen extends StatefulWidget {
   @override
@@ -10,11 +11,11 @@ class CalendarScreen extends StatefulWidget {
 
 class _CalendarScreenState extends State<CalendarScreen> {
   final TextEditingController _titleController = TextEditingController();
-  final TextEditingController _dateController = TextEditingController();
   final CalendarService _calendarService = CalendarService();
   List<CalendarEvent> _events = [];
   Map<DateTime, List<CalendarEvent>> _eventsMap = {};
   DateTime _selectedDate = DateTime.now();
+  DateTime? _newEventDateTime;
 
   @override
   void initState() {
@@ -44,31 +45,61 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   void _addEvent() {
-    if (_titleController.text.isNotEmpty && _dateController.text.isNotEmpty) {
-      final date = DateTime.tryParse(_dateController.text);
-      if (date != null) {
+    if (_titleController.text.isNotEmpty && _newEventDateTime != null) {
+      final date = _newEventDateTime!;
         final event = CalendarEvent(
           title: _titleController.text,
           date: date,
         );
         _calendarService.addEvent(event).then((_) {
+          NotificationService.instance.scheduleNotification(
+            DateTime.now().millisecondsSinceEpoch ~/ 1000,
+            'Lembrete do Bebê',
+            event.title,
+            event.date,
+          );
+
           setState(() {
             _events = _calendarService.getEvents();
             _eventsMap = _groupEventsByDate(_events);
             _titleController.clear();
-            _dateController.clear();
+            _newEventDateTime = null;
           });
         });
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Data inválida! Use o formato YYYY-MM-DD.')),
-        );
-      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Título e data são obrigatórios!')),
+        const SnackBar(content: Text('Título e data/hora são obrigatórios!')),
       );
     }
+  }
+
+  Future<void> _pickDateTime() async {
+    final pickedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime.now().subtract(const Duration(days: 1)),
+      lastDate: DateTime.now().add(const Duration(days: 3650)),
+    );
+
+    if (pickedDate == null) return;
+    if (!mounted) return;
+
+    final pickedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+
+    if (pickedTime == null) return;
+
+    setState(() {
+      _newEventDateTime = DateTime(
+        pickedDate.year,
+        pickedDate.month,
+        pickedDate.day,
+        pickedTime.hour,
+        pickedTime.minute,
+      );
+    });
   }
 
   void _deleteEvent(int index) {
@@ -135,13 +166,21 @@ Widget build(BuildContext context) {
               ),
               SizedBox(width: 10),
               Expanded(
-                child: TextField(
-                  controller: _dateController,
-                  decoration: InputDecoration(
-                    labelText: 'Data (YYYY-MM-DD)',
-                    prefixIcon: Icon(Icons.calendar_today),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
+                child: InkWell(
+                  onTap: _pickDateTime,
+                  child: InputDecorator(
+                    decoration: InputDecoration(
+                      labelText: 'Data e hora',
+                      prefixIcon: Icon(Icons.calendar_today),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: Text(
+                      _newEventDateTime == null
+                          ? 'Selecionar'
+                          : '${_newEventDateTime!.day.toString().padLeft(2, '0')}/${_newEventDateTime!.month.toString().padLeft(2, '0')}/${_newEventDateTime!.year} '
+                              '${_newEventDateTime!.hour.toString().padLeft(2, '0')}:${_newEventDateTime!.minute.toString().padLeft(2, '0')}',
                     ),
                   ),
                 ),

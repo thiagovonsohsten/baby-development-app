@@ -7,7 +7,7 @@ Aplicativo Flutter focado no desenvolvimento infantil, projetado para ajudar pai
 - **Rotina do Bebê**: Ferramenta para organizar horários de sono, alimentação, trocas de fraldas e mais.
 - **Calendário**: Agende eventos e lembretes importantes relacionados ao bebê.
 - **Checklist**: Crie e gerencie listas para itens e tarefas.
-- **Chat com IA**: Obtenha respostas a perguntas sobre desenvolvimento infantil usando integração com GPT.
+- **Lembretes Locais**: Notificações para compromissos e rotinas do bebê.
 
 ---
 
@@ -16,7 +16,6 @@ Aplicativo Flutter focado no desenvolvimento infantil, projetado para ajudar pai
 - **Hive**: Persistência de dados local.
 - **Lottie**: Animações interativas para uma experiência agradável.
 - **Flutter Local Notifications**: Notificações para lembretes e eventos.
-- **OpenAI GPT**: Chat inteligente com suporte a perguntas relacionadas ao desenvolvimento infantil.
 
 ---
 

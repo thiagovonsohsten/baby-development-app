@@ -7,13 +7,14 @@ import 'screens/development_screen.dart';
 import 'screens/routine_screen.dart';
 import 'screens/calendar_screen.dart';
 import 'screens/checklist_screen.dart';
-import 'screens/chat_screen.dart'; // Importar a tela de chat
+import 'utils/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
   Hive.registerAdapter(CalendarEventAdapter());
   Hive.registerAdapter(RoutineAdapter());
+  await NotificationService.instance.init();
   runApp(BabyDevelopmentApp());
 }
 
@@ -51,7 +52,6 @@ class _MainScreenState extends State<MainScreen> {
     RoutineScreen(),
     CalendarScreen(),
     ChecklistScreen(),
-    ChatScreen(), // Adicione a ChatScreen aqui
   ];
 
   void _onItemTapped(int index) {
@@ -94,10 +94,6 @@ class _MainScreenState extends State<MainScreen> {
           BottomNavigationBarItem(
             icon: Icon(Icons.checklist),
             label: 'Checklist',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.chat),
-            label: 'Chat', // Ícone e rótulo para a tela de chat
           ),
         ],
       ),

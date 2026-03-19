@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/routine.dart';
+import '../utils/notification_service.dart';
 import '../utils/routine_service.dart';
 
 class RoutineScreen extends StatefulWidget {
@@ -9,9 +10,9 @@ class RoutineScreen extends StatefulWidget {
 
 class _RoutineScreenState extends State<RoutineScreen> {
   final TextEditingController _routineController = TextEditingController();
-  final TextEditingController _timeController = TextEditingController();
   final RoutineService _routineService = RoutineService();
   List<Routine> _routines = [];
+  TimeOfDay? _selectedTime;
 
   @override
   void initState() {
@@ -24,18 +25,49 @@ class _RoutineScreenState extends State<RoutineScreen> {
   }
 
   void _addRoutine() {
-    if (_routineController.text.isNotEmpty && _timeController.text.isNotEmpty) {
+    if (_routineController.text.isNotEmpty && _selectedTime != null) {
+      final timeLabel =
+          '${_selectedTime!.hour.toString().padLeft(2, '0')}:${_selectedTime!.minute.toString().padLeft(2, '0')}';
       final routine = Routine(
         activity: _routineController.text,
-        time: _timeController.text,
+        time: timeLabel,
       );
       _routineService.addRoutine(routine).then((_) {
+        final now = DateTime.now();
+        final scheduledTime = DateTime(
+          now.year,
+          now.month,
+          now.day,
+          _selectedTime!.hour,
+          _selectedTime!.minute,
+        );
+        NotificationService.instance.scheduleDailyNotification(
+          DateTime.now().millisecondsSinceEpoch ~/ 1000,
+          'Rotina do Bebê',
+          'Hora de: ${routine.activity}',
+          scheduledTime,
+        );
+
         setState(() {
           _routines = _routineService.getRoutines();
           _routineController.clear();
-          _timeController.clear();
+          _selectedTime = null;
         });
       });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Informe atividade e horário.')),
+      );
+    }
+  }
+
+  Future<void> _pickTime() async {
+    final pickedTime = await showTimePicker(
+      context: context,
+      initialTime: _selectedTime ?? TimeOfDay.now(),
+    );
+    if (pickedTime != null) {
+      setState(() => _selectedTime = pickedTime);
     }
   }
 
@@ -99,13 +131,20 @@ class _RoutineScreenState extends State<RoutineScreen> {
                 ),
                 SizedBox(width: 10),
                 Expanded(
-                  child: TextField(
-                    controller: _timeController,
-                    decoration: InputDecoration(
-                      labelText: 'Horário',
-                      prefixIcon: Icon(Icons.access_time),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
+                  child: InkWell(
+                    onTap: _pickTime,
+                    child: InputDecorator(
+                      decoration: InputDecoration(
+                        labelText: 'Horário',
+                        prefixIcon: Icon(Icons.access_time),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: Text(
+                        _selectedTime == null
+                            ? 'Selecionar'
+                            : '${_selectedTime!.hour.toString().padLeft(2, '0')}:${_selectedTime!.minute.toString().padLeft(2, '0')}',
                       ),
                     ),
                   ),
